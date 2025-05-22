@@ -53,13 +53,7 @@ def set_phone_number(phone_number: str, state: Annotated[CustomState, InjectedSt
 def validate_payload(state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     
     message = 'payload validated successfully'
-    if state['phone_number'] is None:
-        message = "Phone number is required"
-    
-    if state['phone_number'] == "":
-        message = "Phone number is required"
-    
-    if state['phone_number'] == "":
+    if state['phone_number'] is None or state['phone_number'].strip() == "":
         message = "Phone number is required"
     
     tool_message = ToolMessage(content=message, tool_call_id=tool_call_id)

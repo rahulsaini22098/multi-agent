@@ -122,20 +122,29 @@ def get_order(
          }
       )
    
-@tool('handoff_to_idv_agent', description=" tool to transfer the control to idv agent")
+@tool(
+  'handoff_to_idv_agent', 
+  description="""
+  It is used to transfer the control to idv agent.
+  - IDV Agent is responsible for handling the IDV (authentication and authorization) related queries.
+      such as 
+      - validate payload
+      - send otp
+      - verify otp
+      - confirm authorization
+      - set phone number
+  """)
 def handoff_to_idv_agent(
       state: Annotated[CustomState, InjectedState], 
       tool_call_id: Annotated[str, InjectedToolCallId]
 ) -> Command[Literal["idv_agent"]]:
-   cleaned = [m for m in state['messages'] if m.type != "system"]
-   
+
    tool_message = ToolMessage(content="transfer to idv agent", tool_call_id=tool_call_id)
-   cleaned.append(tool_message)
-   
+
    return Command(
       goto=NodeName.idv_agent.value,
       graph=Command.PARENT,
       update={
-         "messages": cleaned
+         "messages": state['messages'] + [tool_message]
       }  
    )

@@ -48,20 +48,66 @@ def get_appointments(state: Annotated[CustomState, InjectedState], tool_call_id:
          }
       )
 
-@tool('handoff_to_idv_agent', description=" tool to transfer the control to idv agent")
+@tool(
+   'handoff_to_idv_agent', 
+   description="""
+   It is used to transfer the control to idv agent.
+   - IDV Agent is responsible for handling the user (authentication and authorization).
+      such as 
+      - validate payload
+      - send otp
+      - verify otp
+      - confirm authorization
+      - set phone number
+   """)
 def handoff_to_idv_agent(
       state: Annotated[CustomState, InjectedState], 
       tool_call_id: Annotated[str, InjectedToolCallId]
 ) -> Command[Literal["idv_agent"]]:
-   cleaned = [m for m in state['messages'] if m.type != "system"]
    
    tool_message = ToolMessage(content="transfer to idv agent", tool_call_id=tool_call_id)
-   cleaned.append(tool_message)
    
    return Command(
       goto=NodeName.idv_agent.value,
       graph=Command.PARENT,
       update={
-         "messages": cleaned
+         "messages": state['messages'] + [tool_message]
       }  
    )
+   
+@tool(
+   'handoff_to_order_agent', 
+   description="""
+   It is used to transfer the control to order agent.
+   - Order Agent is responsible for handling the order related queries.
+      such as 
+      - List user orders
+   """)
+def handoff_to_order_agent(
+      state: Annotated[CustomState, InjectedState], 
+      tool_call_id: Annotated[str, InjectedToolCallId]
+) -> Command[Literal["order_agent"]]:
+   
+   tool_message = ToolMessage(content="transfer to order agent", tool_call_id=tool_call_id)
+   
+   return Command(
+      goto=NodeName.order_agent.value,
+      graph=Command.PARENT,
+      update={
+         "messages": state['messages'] + [tool_message]
+      }  
+   )
+   
+@tool(
+   'welcome_message',
+   description="""
+   It is used to send the welcome message to the user.
+   """)
+def welcome_message(
+   state: Annotated[CustomState, InjectedState], 
+   tool_call_id: Annotated[str, InjectedToolCallId]
+):
+   welcome_message = "Hello, I am your Ai assistant. I can help you with your appointment and order related queries."
+   tool_message = ToolMessage(content=welcome_message, tool_call_id=tool_call_id)
+   
+   return Command(update={"messages": state['messages'] + [tool_message]})
