@@ -30,22 +30,22 @@ class Configuration(TypedDict):
 graph = (
 
     #  Graph using supervisor
-    # StateGraph(CustomState, config_schema=Configuration)
-    # .add_node(NodeName.agent_manager.value, AgentManager.compile_graph())
-
-    # # Add edges
-    # .add_edge(START, NodeName.agent_manager.value)
-
-    # # compile the graph
-    # .compile(name='main_graph')
-
-    # Graph using react agent
     StateGraph(CustomState, config_schema=Configuration)
-    .add_node(NodeName.appointment_agent.value, AppointmentAgent.create_agent())
-    .add_node(NodeName.order_agent.value, OrderAgent.create_agent())
-    .add_node(NodeName.idv_agent.value, IDVAgent.create_agent())
+    .add_node(NodeName.agent_manager.value, AgentManager.compile_graph())
 
     # Add edges
-    .add_edge(START, NodeName.appointment_agent.value)
+    .add_edge(START, NodeName.agent_manager.value)
+
+    # compile the graph
     .compile(name='main_graph')
+
+    # # Graph using react agent
+    # StateGraph(CustomState, config_schema=Configuration)
+    # .add_node(NodeName.appointment_agent.value, AppointmentAgent.create_agent())
+    # .add_node(NodeName.order_agent.value, OrderAgent.create_agent())
+    # .add_node(NodeName.idv_agent.value, IDVAgent.create_agent())
+
+    # # Add edges
+    # .add_edge(START, NodeName.appointment_agent.value)
+    # .compile(name='main_graph')
 )

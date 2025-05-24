@@ -97,17 +97,3 @@ def handoff_to_order_agent(
          "messages": state['messages'] + [tool_message]
       }  
    )
-   
-@tool(
-   'welcome_message',
-   description="""
-   It is used to send the welcome message to the user.
-   """)
-def welcome_message(
-   state: Annotated[CustomState, InjectedState], 
-   tool_call_id: Annotated[str, InjectedToolCallId]
-):
-   welcome_message = "Hello, I am your Ai assistant. I can help you with your appointment and order related queries."
-   tool_message = ToolMessage(content=welcome_message, tool_call_id=tool_call_id)
-   
-   return Command(update={"messages": state['messages'] + [tool_message]})

@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from agent.state import CustomState
 from agent.utils.node_names import NodeName 
-from agent.sub_graph.appointment.tools.appointments import get_appointments, handoff_to_idv_agent, handoff_to_order_agent, welcome_message
+from agent.sub_graph.appointment.tools.appointments import get_appointments, handoff_to_idv_agent
 from langgraph_supervisor import create_supervisor
 from agent.sub_graph.idv.idv import IDVAgent
 from langgraph.prebuilt import create_react_agent
@@ -13,6 +13,113 @@ class AppointmentAgent:
   def agent_prompt(state: CustomState):
     
     system_prompt = f"""
+      You are the Appointment Agent, responsible for handling appointment-related user queries using the tools and sub-agents available to you.
+
+      ============================
+      SUPPORTED SERVICES
+      ============================
+
+      Appointment Services You Support:
+      - List user appointments (via the `get_appointments` tool)
+
+      ============================
+      AVAILABLE SUB-AGENTS
+      ============================
+
+      1. IDV Agent (Identity Verification)
+        Responsible for handling authentication and authorization:
+        - Validate payload
+        - Send OTP
+        - Verify OTP
+        - Confirm authorization
+
+      ============================
+      CONTEXT
+      ============================
+
+      Current Authorization State:
+      is_authorized: {state.get('is_authorized')}
+
+      ============================
+      BEHAVIORAL RULES
+      ============================
+
+      1. Authorization Requirement
+        - If `is_authorized` is **False**, you must initiate and complete the **IDV flow** using the IDV Agent before calling any appointment-related tools.
+        - If `is_authorized` is **True**, you may proceed directly to the appointment tool.
+        - Always check the `is_authorized` state before proceeding.
+
+      2. Tool Usage
+        - Use tools only when necessary. Do **not** call the same tool multiple times without reason.
+        - Do **not** attempt to bypass or fake user input. Only proceed when required data is explicitly provided.
+
+      3. Unsupported Requests
+        - If the user asks for any service **not listed above** (e.g., booking an appointment):
+          - Respond politely that the service is not supported.
+          - Clearly list the services you **can assist with**.
+
+      4. User Interaction
+        - Never fabricate user inputs like OTP or IDs.
+        - If input is needed (e.g., for OTP verification), wait for the user to provide it.
+        - Do not proceed unless all required steps (e.g., IDV) are completed.
+
+      ============================
+      RESPONSE FORMAT
+      ============================
+
+      - Always return a user-facing message that clearly answers the user’s query.
+      - Rephrase internal tool outputs to be user-friendly.
+      - Use plain formatting (no markdown). Ensure messages are clear, polite, and easy to read.
+
+      ============================
+      EXAMPLE FLOW
+      ============================
+
+      User: "Can you show me my appointments?"
+
+      → Step 1: Check `is_authorized`
+      → If False:
+          - Initiate IDV flow using the IDV Agent
+          - Ask user for OTP if needed
+          - Complete verification
+      → Once authorized:
+          - Call `get_appointments`
+          - Format and return a clear summary of the user’s appointments
+
+      ============================
+      REMINDERS
+      ============================
+
+      - Do not call appointment tools without prior authorization.
+      - Do not assume user identity or actions.
+      - Do not handle booking requests; clearly explain only supported services.
+    """
+    return  [SystemMessage(content=system_prompt)] + state['messages']
+  
+  #  Execution Multi-Intent Instructions:
+  #       1. For every user query:
+  #         - If the query includes multiple intents create a complete plan to handle all intents and proceed, 
+  #           generate a detailed, step-by-step action plan outlining which agent(s) will be called and in what order.
+
+  #       2. Add this action plan as a separate internal message in the conversation history before invoking any agents.
+  #         Do not show this plan to the user.
+  
+  @staticmethod
+  def create_agent():
+    appointment_agent = create_react_agent(
+      model=ChatOpenAI(model="gpt-4o-mini"),
+      state_schema=CustomState,
+      tools=[get_appointments, handoff_to_idv_agent],
+      prompt=AppointmentAgent.agent_prompt,
+      name=NodeName.appointment_agent.value
+    )
+
+    return appointment_agent
+  
+  @staticmethod
+  def agent_prompt_for_supervisor(state: CustomState):
+
+    system_prompt = f"""
       You are an intelligent assistant whose responsibilties is to answer the appointment related queries using the
       tool at you disposal in you best capacity.
       
@@ -21,7 +128,7 @@ class AppointmentAgent:
       - List user appointments (get_appointments tool)
       
       Context:
-       is_authorized: {state.get('is_authorized')}
+        is_authorized: {state.get('is_authorized')}
       
       Instructions:
         - Before using **any appointment-related tool**, you **must check if `is_authorized` is True**.
@@ -54,69 +161,8 @@ class AppointmentAgent:
 
       Do not infer or reuse appointment or other service data from older message history. 
       Treat each tool call independently and based only on the current message context.
-      
-    
-      
-      
     """
-    
-    # Handoff Rules:
-    #   - When a user request contains multiple intents (e.g., "I want to see my order and my appointment"), identify which intent appears first in the user's message and handle that one first.
-    #     add that as a ai message also.
-    #   - If handling the intent requires a tool or a handoff to another agent:
-    #       - Only call one tool or perform one handoff at a time.
-          
-    #       - Once a tool is called or a handoff is made, do not attempt to call another tool or initiate another handoff until the current one completes 
-    #         and control is returned to you.
-
-    #       - This is because only one node (agent) is active at a time in the swarm architecture. 
-    #         Calling a second tool or agent during an active handoff will cause a conflict or be ignored.
-
-    #     - If all requested actions in the query require handoff to other agents, handoff only once, based on the first mentioned intent, 
-    #       and ignore the others until control is returned.
-
-    return  [SystemMessage(content=system_prompt)] + state['messages']
-  
-  @staticmethod
-  def create_agent():
-    appointment_agent = create_react_agent(
-      model=ChatOpenAI(model="gpt-4o-mini"),
-      state_schema=CustomState,
-      tools=[get_appointments, handoff_to_idv_agent, handoff_to_order_agent, welcome_message],
-      prompt=AppointmentAgent.agent_prompt,
-      name=NodeName.appointment_agent.value
-    )
-
-    return appointment_agent
-  
-  @staticmethod
-  def agent_prompt_for_supervisor(state: CustomState):
-
-    if state.get('is_authorized') is None or state.get('is_authorized') == False:
-      system_prompt = f"""
-      Its look like user is not authorized to for appointments related queries. supervisor need to handoff the control to idv agent to authenticate the user first.
-      
-      Do not make any tool call related to appointments.
-      """
-    
-    else:
-      system_prompt = f"""
-      You are an expert agent who's sole and only purpose and responsibility is to handle the appointment related queries.
-
-      These are the the feature you currently support:
-      1. List user appointments
-
-      If user asks about anything else, you should politely decline and say you support only the above features.
-
-      You should only continue with the listed features if user is already authorised.
-
-      Always make sure the last message should be the well structured ai response what can we shouw to user.
-      Do not disclose and sensative information to user.
-      
-      Do not make the tool call in parallel. It should always be in sequence.
-    """
-
-    return  [SystemMessage(content=system_prompt)] + state['messages']
+    return [SystemMessage(content=system_prompt)] + state['messages']
   
   @staticmethod
   def compile_graph():
@@ -126,9 +172,10 @@ class AppointmentAgent:
         agents=[IDVAgent.create_agent()],
         model=ChatOpenAI(model="gpt-4o-mini"),
         state_schema=CustomState,
-        prompt=AppointmentAgent.agent_prompt_for_supervisor,
+        prompt=AppointmentAgent.agent_prompt,
         supervisor_name="appointment_agent_supervisor",
-        output_mode="full_history"
+        output_mode="last_message",
+        handoff_tool_prefix="handoff_to_"
     )
 
     return workflow.compile(name=NodeName.appointment_agent.value)

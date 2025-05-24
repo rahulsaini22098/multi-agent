@@ -38,7 +38,10 @@ def handoff_to_order_agent(
     tool_message = ToolMessage(content="transfer to order agent", tool_call_id=tool_call_id)
     cleaned.append(tool_message)
 
-@tool('set_phone_number', description="Set the phone number in the state if validate_payload tool ask for it")
+@tool(
+    'set_phone_number',
+    description="Set the user's phone number in state. Use this tool when the user provides a valid phone number to start or update the verification process."
+)
 def set_phone_number(phone_number: str, state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     tool_message = ToolMessage(content=f"Phone number set to {phone_number}", tool_call_id=tool_call_id)
     
@@ -49,7 +52,10 @@ def set_phone_number(phone_number: str, state: Annotated[CustomState, InjectedSt
         }
     )
 
-@tool('validate_payload', description="Validate the payload before sending the otp")
+@tool(
+    'validate_payload',
+    description="Validate whether the payload is ready to proceed with sending OTP. Use this to ensure required fields (like phone_number) are set before sending the OTP."
+)
 def validate_payload(state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     
     message = 'payload validated successfully'
@@ -64,7 +70,10 @@ def validate_payload(state: Annotated[CustomState, InjectedState], tool_call_id:
         }
     )
 
-@tool("send_otp", description="Send an OTP to the user's phone number")
+@tool(
+    "send_otp",
+    description="Send a one-time password (OTP) to the phone number saved in the state. Use only after successful payload validation."
+)
 def send_otp(state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     try:
         phone_number = state['phone_number']
@@ -95,7 +104,10 @@ def send_otp(state: Annotated[CustomState, InjectedState], tool_call_id: Annotat
             },
         )
 
-@tool("verify_otp", description="Verify the OTP for a given phone number")
+@tool(
+    "verify_otp",
+    description="Verify the OTP provided by the user. Use this after the OTP has been sent and the user inputs the received OTP."
+)
 def verify_otp(otp: str, state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     try:
         stored_otp = MOCK_OTP
