@@ -3,7 +3,8 @@ from typing import Optional
 from typing import Annotated
 import operator
 class CustomState(AgentState):
-    phone_number: Annotated[str, "9876543210"] = "9876543210"
-    is_authorized: bool = False
-    otp_sent: bool = False
-    customer_id: Optional[str] = None
+    active_agent: Optional[str]
+    phone_number: Annotated[str, "9876543210"]
+    is_authorized: bool
+    otp_sent: bool
+    customer_id: Optional[str]

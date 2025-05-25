@@ -14,6 +14,7 @@ from agent.utils.node_names import NodeName
 from agent.sub_graph.idv.idv import IDVAgent
 from agent.sub_graph.appointment.appointment import AppointmentAgent
 from agent.sub_graph.order.order import OrderAgent
+from langgraph_swarm import create_swarm
 
 class Configuration(TypedDict):
     """Configurable parameters for the agent.
@@ -28,24 +29,14 @@ class Configuration(TypedDict):
 
 
 graph = (
-
-    #  Graph using supervisor
-    # StateGraph(CustomState, config_schema=Configuration)
-    # .add_node(NodeName.agent_manager.value, AgentManager.compile_graph())
-
-    # # Add edges
-    # .add_edge(START, NodeName.agent_manager.value)
-
-    # # compile the graph
-    # .compile(name='main_graph')
-
-    # Graph using react agent
-    StateGraph(CustomState, config_schema=Configuration)
-    .add_node(NodeName.appointment_agent.value, AppointmentAgent.create_agent())
-    .add_node(NodeName.order_agent.value, OrderAgent.create_agent())
-    .add_node(NodeName.idv_agent.value, IDVAgent.create_agent())
-
-    # Add edges
-    .add_edge(START, NodeName.appointment_agent.value)
-    .compile(name='main_graph')
+    create_swarm(
+        agents=[
+            AppointmentAgent.create_agent(), 
+            OrderAgent.create_agent(), 
+            IDVAgent.create_agent()
+        ],
+        default_active_agent=NodeName.appointment_agent.value,
+        state_schema=CustomState,
+        config_schema=Configuration,
+    ).compile(name='main_graph')
 )

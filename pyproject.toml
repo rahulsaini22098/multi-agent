@@ -13,7 +13,8 @@ dependencies = [
     "asyncpg",
     "sqlalchemy[asyncio]",
     "langchain-openai",
-    "langgraph_supervisor"
+    "langgraph_supervisor",
+    "langgraph_swarm
 ]
 
 

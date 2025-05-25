@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 from agent.state import CustomState
 from agent.utils.node_names import NodeName 
-from agent.sub_graph.appointment.tools.appointments import get_appointments, handoff_to_idv_agent, handoff_to_order_agent, welcome_message
+from agent.sub_graph.appointment.tools.appointments import get_appointments, transfer_to_idv_agent, transfer_to_order_agent, welcome_message
 from langgraph_supervisor import create_supervisor
 from agent.sub_graph.idv.idv import IDVAgent
 from langgraph.prebuilt import create_react_agent
@@ -54,10 +54,7 @@ class AppointmentAgent:
 
       Do not infer or reuse appointment or other service data from older message history. 
       Treat each tool call independently and based only on the current message context.
-      
-    
-      
-      
+      parallel tool call is not allowed.  
     """
     
     # Handoff Rules:
@@ -82,9 +79,9 @@ class AppointmentAgent:
     appointment_agent = create_react_agent(
       model=ChatOpenAI(model="gpt-4o-mini"),
       state_schema=CustomState,
-      tools=[get_appointments, handoff_to_idv_agent, handoff_to_order_agent, welcome_message],
+      tools=[get_appointments, transfer_to_idv_agent, transfer_to_order_agent, welcome_message],
       prompt=AppointmentAgent.agent_prompt,
-      name=NodeName.appointment_agent.value
+      name=NodeName.appointment_agent.value,
     )
 
     return appointment_agent

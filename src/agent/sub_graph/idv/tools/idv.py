@@ -5,38 +5,22 @@ from langchain_core.messages import ToolMessage, AIMessage
 from agent.state import CustomState
 from langchain_core.tools import tool
 from langchain_core.tools import InjectedToolCallId
-from typing import Literal
 from agent.utils.node_names import NodeName
-# Store OTPs in memory (in production, use a proper database/cache)
+from agent.utils.utils import Utils
+
 MOCK_OTP = "123456"
 
-@tool("handoff_to_appointment_agent", description="Transfer to appointment agent")
-def handoff_to_appointment_agent(
-    state: Annotated[CustomState, InjectedState], 
-    tool_call_id: Annotated[str, InjectedToolCallId]
-) -> Command[Literal["appointment_agent"]]:
-    cleaned = [m for m in state['messages'] if m.type != "system"]
-    tool_message = ToolMessage(content="transfer to appointment agent", tool_call_id=tool_call_id)
-    cleaned.append(tool_message)
-    
-    return Command(
-        goto=NodeName.appointment_agent.value,
-        graph=Command.PARENT,
-        update={
-            "is_authorized": state.get('is_authorized', False),
-            "customer_id": state.get('customer_id', None),
-            "messages": cleaned
-        }
-    )
+transfer_to_appointment_agent = Utils.create_handoff_tool(
+  agent_name=NodeName.appointment_agent.value,
+  description=f"Transfer to the {NodeName.appointment_agent.value} assistant",
+  include_state_keys=["phone_number", "is_authorized", "customer_id", "otp_sent"]
+)
 
-@tool('handoff_to_order_agent', description="Transfer to order agent")
-def handoff_to_order_agent(
-    state: Annotated[CustomState, InjectedState], 
-    tool_call_id: Annotated[str, InjectedToolCallId]
-) -> Command[Literal["order_agent"]]:
-    cleaned = [m for m in state['messages'] if m.type != "system"]
-    tool_message = ToolMessage(content="transfer to order agent", tool_call_id=tool_call_id)
-    cleaned.append(tool_message)
+transfer_to_order_agent = Utils.create_handoff_tool(
+  agent_name=NodeName.order_agent.value,
+  description=f"Transfer to the {NodeName.order_agent.value} assistant",
+  include_state_keys=["phone_number", "is_authorized", "customer_id", "otp_sent"]
+)
 
 @tool('set_phone_number', description="Set the phone number in the state if validate_payload tool ask for it")
 def set_phone_number(phone_number: str, state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
@@ -64,7 +48,7 @@ def validate_payload(state: Annotated[CustomState, InjectedState], tool_call_id:
         }
     )
 
-@tool("send_otp", description="Send an OTP to the user's phone number")
+@tool("send_otp", description="Send an OTP to the user")
 def send_otp(state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     try:
         phone_number = state['phone_number']
@@ -95,7 +79,7 @@ def send_otp(state: Annotated[CustomState, InjectedState], tool_call_id: Annotat
             },
         )
 
-@tool("verify_otp", description="Verify the OTP for a given phone number")
+@tool("verify_otp", description="Verify the OTP provided by the user")
 def verify_otp(otp: str, state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     try:
         stored_otp = MOCK_OTP

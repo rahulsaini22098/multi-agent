@@ -4,7 +4,7 @@ from agent.utils.node_names import NodeName
 from langgraph_supervisor import create_supervisor
 from agent.sub_graph.idv.idv import IDVAgent
 from langgraph.prebuilt import create_react_agent
-from agent.sub_graph.order.tools.order import get_order, handoff_to_idv_agent
+from agent.sub_graph.order.tools.order import get_order, transfer_to_idv_agent, transfer_to_appointment_agent
 from langchain_core.messages import SystemMessage
 
 class OrderAgent:
@@ -35,7 +35,7 @@ class OrderAgent:
       - Always make sure the last message should be the well structured ai response what can we show to user.
         Do not disclose and sensative information to user.
       
-      - Do not make the parallel tool call only one at a time.
+      - Do not make the tool call in parallel. It should always be in sequence.
       
       Multi-Intent Handling:
         - If the user’s request mentions **orders** plus any other service (e.g., appointments), you **must**:
@@ -64,6 +64,7 @@ class OrderAgent:
 
         - If all requested actions in the query require handoff to other agents, handoff only once, based on the first mentioned intent, 
           and ignore the others until control is returned.
+      
     """
     return [SystemMessage(content=system_prompt)] + state['messages']
   
@@ -72,7 +73,7 @@ class OrderAgent:
     order_agent = create_react_agent(
       model=ChatOpenAI(model="gpt-4o-mini"),
       state_schema=CustomState,
-      tools=[get_order, handoff_to_idv_agent],
+      tools=[get_order, transfer_to_idv_agent, transfer_to_appointment_agent],
       prompt=OrderAgent.agent_prompt,
       name=NodeName.order_agent.value
     )
@@ -118,5 +119,5 @@ class OrderAgent:
         supervisor_name="order_agent_supervisor",
         output_mode="full_history"
     )
-
+    
     return workflow.compile(name=NodeName.order_agent.value)

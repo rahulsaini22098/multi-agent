@@ -7,6 +7,7 @@ from typing import Annotated
 from langgraph.prebuilt import InjectedState
 from langgraph.types import Command
 from langchain_core.messages import ToolMessage
+from langgraph_swarm import create_handoff_tool
 
 order_data = [
   {
@@ -122,29 +123,39 @@ def get_order(
          }
       )
    
-@tool(
-  'handoff_to_idv_agent', 
-  description="""
-  It is used to transfer the control to idv agent.
-  - IDV Agent is responsible for handling the IDV (authentication and authorization) related queries.
-      such as 
-      - validate payload
-      - send otp
-      - verify otp
-      - confirm authorization
-      - set phone number
-  """)
-def handoff_to_idv_agent(
-      state: Annotated[CustomState, InjectedState], 
-      tool_call_id: Annotated[str, InjectedToolCallId]
-) -> Command[Literal["idv_agent"]]:
+# @tool(
+#   'handoff_to_idv_agent', 
+#   description="""
+#   It is used to transfer the control to idv agent.
+#   - IDV Agent is responsible for handling the IDV (authentication and authorization) related queries.
+#       such as 
+#       - validate payload
+#       - send otp
+#       - verify otp
+#       - confirm authorization
+#       - set phone number
+#   """)
+# def handoff_to_idv_agent(
+#       state: Annotated[CustomState, InjectedState], 
+#       tool_call_id: Annotated[str, InjectedToolCallId]
+# ) -> Command[Literal["idv_agent"]]:
 
-   tool_message = ToolMessage(content="transfer to idv agent", tool_call_id=tool_call_id)
+#    tool_message = ToolMessage(content="transfer to idv agent", tool_call_id=tool_call_id)
 
-   return Command(
-      goto=NodeName.idv_agent.value,
-      graph=Command.PARENT,
-      update={
-         "messages": state['messages'] + [tool_message]
-      }  
-   )
+#    return Command(
+#       goto=NodeName.idv_agent.value,
+#       graph=Command.PARENT,
+#       update={
+#          "messages": state['messages'] + [tool_message]
+#       }  
+#    )
+
+transfer_to_idv_agent = create_handoff_tool(
+   agent_name=NodeName.idv_agent.value,
+   description=f"Transfer user to the {NodeName.idv_agent.value} assistant."
+)
+
+transfer_to_appointment_agent = create_handoff_tool(
+   agent_name=NodeName.appointment_agent.value,
+   description=f"Transfer user to the {NodeName.appointment_agent.value} assistant."
+)
