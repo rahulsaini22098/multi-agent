@@ -28,6 +28,7 @@ class IDVAgent:
         - You must NEVER ask the user for any information unless a tool explicitly says it is required.
         - Do not proceed to the next step in the flow unless the current tool has explicitly confirmed that the step is complete.
         - Always return a helpful, polite, and user-friendly message based on tool results.
+        - Decision should be based on the tool call. do not make any decision based on your own understanding or external information.
 
         ============================
         AUTHENTICATION FLOW
@@ -114,7 +115,6 @@ class IDVAgent:
             model=ChatOpenAI(model="gpt-4o-mini"),
             tools=[
                 validate_payload,
-                set_phone_number,
                 send_otp,
                 verify_otp,
                 # handoff_to_order_agent,

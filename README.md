@@ -88,7 +88,7 @@ Initial state for langstudio
   "customer_id": null,
   "messages": [
     {
-      "content": "i want to see my appointment and book a appintment for 25 may",
+      "content": "i want to list appointment and orders",
       "type": "human"
     }
   ]

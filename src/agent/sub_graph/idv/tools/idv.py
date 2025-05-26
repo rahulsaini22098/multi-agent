@@ -40,7 +40,9 @@ def handoff_to_order_agent(
 
 @tool(
     'set_phone_number',
-    description="Set the user's phone number in state. Use this tool when the user provides a valid phone number to start or update the verification process."
+    description="""This tool is used to set the user's phone number in state.   
+    If validation tool response asked the valid phone number and user provides a valid phone number.
+    """
 )
 def set_phone_number(phone_number: str, state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]) -> Command:
     tool_message = ToolMessage(content=f"Phone number set to {phone_number}", tool_call_id=tool_call_id)
