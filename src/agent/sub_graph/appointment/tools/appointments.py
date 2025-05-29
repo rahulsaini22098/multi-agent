@@ -4,13 +4,13 @@ from langgraph.types import Command
 import json
 from langchain_core.messages import ToolMessage
 from langchain_core.tools import InjectedToolCallId
-from agent.state import CustomState
+from agent.state import MainState
 from typing import Literal
 from langchain_core.tools import tool
-from agent.utils.node_names import NodeName
+from utils.node_names import NodeName
 from langgraph_swarm import create_handoff_tool
 
-def get_appointments(state: Annotated[CustomState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]):   
+def get_appointments(state: Annotated[MainState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]):   
    """
    Get appointments for a given customer ID.
 
@@ -55,7 +55,7 @@ def get_appointments(state: Annotated[CustomState, InjectedState], tool_call_id:
    It is used to send the welcome message to the user.
    """)
 def welcome_message(
-   state: Annotated[CustomState, InjectedState], 
+   state: Annotated[MainState, InjectedState], 
    tool_call_id: Annotated[str, InjectedToolCallId]
 ):
    welcome_message = "Hello, I am your Ai assistant. I can help you with your appointment and order related queries."
@@ -74,4 +74,14 @@ transfer_to_order_agent = create_handoff_tool(
    description=f"Transfer user to the {NodeName.order_agent.value} assistant."
 )
 
-   
+appointment_tools_json = {
+   "get_appointments": {
+      "description": "List user appointments",
+      "tool": get_appointments
+    },
+}
+
+appointment_handoff_tools_json = {
+   "transfer_to_idv_agent": transfer_to_idv_agent,
+   "transfer_to_order_agent": transfer_to_order_agent
+}

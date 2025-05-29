@@ -1,12 +1,12 @@
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
-from agent.state import CustomState
-from agent.utils.node_names import NodeName
+from agent.state import MainState
+from utils.node_names import NodeName
 from agent.sub_graph.idv.tools.idv import send_otp, verify_otp, confirm_authorization, transfer_to_appointment_agent, set_phone_number, validate_payload, transfer_to_order_agent
 class IDVAgent:
 	@staticmethod
-	def agent_prompt(state: CustomState) -> str:
+	def agent_prompt(state: MainState) -> str:
 		# Include user_provided_otp in the prompt if it exists
 		
 		system_prompt = f"""
@@ -81,10 +81,10 @@ class IDVAgent:
 				send_otp,
 				verify_otp,
 				validate_payload,
-				transfer_to_appointment_agent,
-				transfer_to_order_agent,
+				# transfer_to_appointment_agent,
+				# transfer_to_order_agent,
 			],
-			state_schema=CustomState,
+			state_schema=MainState,
 			name=NodeName.idv_agent.value,
 			prompt=IDVAgent.agent_prompt,
 		)

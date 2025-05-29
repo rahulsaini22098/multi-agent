@@ -1,10 +1,10 @@
-from agent.state import CustomState 
+from agent.state import MainState 
 from langgraph_supervisor import create_supervisor
 from agent.sub_graph.appointment.appointment import AppointmentAgent
 from agent.sub_graph.order.order import OrderAgent
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
-from agent.utils.node_names import NodeName
+from utils.node_names import NodeName
 from langgraph.prebuilt import create_react_agent
 from agent.sub_graph.agent_manager.tools.agent_manager import handoff_to_appointment_agent, handoff_to_order_agent
 from agent.sub_graph.idv.idv import IDVAgent
@@ -12,7 +12,7 @@ from agent.sub_graph.idv.idv import IDVAgent
 class AgentManager:
 
     @staticmethod
-    def agent_prompt(state: CustomState):
+    def agent_prompt(state: MainState):
 
         system_prompt = f"""
             You are a expert agent whose sole and only purpose and responsibility is to call the right tool. You are not allowed to call same tool mulitple times.            
@@ -60,7 +60,7 @@ class AgentManager:
         return create_react_agent(
             model=ChatOpenAI(model="gpt-4o-mini"),
             tools=[handoff_to_appointment_agent, handoff_to_order_agent],
-            state_schema=CustomState,
+            state_schema=MainState,
             prompt=AgentManager.agent_prompt,
             name=NodeName.agent_manager.value
             
@@ -68,7 +68,7 @@ class AgentManager:
         
         
     @staticmethod
-    def agent_prompt_for_supervisor(state: CustomState):
+    def agent_prompt_for_supervisor(state: MainState):
 
         system_prompt = f"""
             You are a expert agent whose sole and only purpose and responsibility is to call the right agent.
@@ -127,7 +127,7 @@ class AgentManager:
         supervisor = create_supervisor(
             agents=[appointment_agent, order_agent, idv_agent],
             model=ChatOpenAI(model="gpt-4o-mini"),
-            state_schema=CustomState,
+            state_schema=MainState,
             prompt=AgentManager.agent_prompt_for_supervisor,
             supervisor_name="agent_manager_supervisor",
             output_mode='last_message',

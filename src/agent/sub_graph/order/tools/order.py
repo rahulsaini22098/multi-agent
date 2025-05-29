@@ -1,8 +1,8 @@
 from langchain_core.tools import tool, InjectedToolCallId
-from agent.state import CustomState
+from agent.state import MainState
 from typing import Literal
 from langchain_core.tools import tool
-from agent.utils.node_names import NodeName
+from utils.node_names import NodeName
 from typing import Annotated
 from langgraph.prebuilt import InjectedState
 from langgraph.types import Command
@@ -102,7 +102,7 @@ order_data = [
 
 @tool('get_order', description="Get the order for a given customer ID")
 def get_order(
-   state: Annotated[CustomState, InjectedState], 
+   state: Annotated[MainState, InjectedState], 
    tool_call_id: Annotated[str, InjectedToolCallId]
   ):
    print(f"Looking up order for customer {state['customer_id']}")

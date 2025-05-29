@@ -7,14 +7,15 @@ from __future__ import annotations
 
 from typing import TypedDict
 from langgraph.graph import StateGraph
-from agent.state import CustomState     
+from agent.state import MainState     
 from agent.sub_graph.agent_manager.agent_manager import AgentManager
 from langgraph.graph import START
-from agent.utils.node_names import NodeName 
+from utils.node_names import NodeName 
 from agent.sub_graph.idv.idv import IDVAgent
 from agent.sub_graph.appointment.appointment import AppointmentAgent
 from agent.sub_graph.order.order import OrderAgent
 from langgraph_swarm import create_swarm
+from core.agent_builder.agent_builder import AgentBuilder
 
 class Configuration(TypedDict):
     """Configurable parameters for the agent.
@@ -31,12 +32,12 @@ class Configuration(TypedDict):
 graph = (
     create_swarm(
         agents=[
-            AppointmentAgent.create_agent(), 
-            OrderAgent.create_agent(), 
+            AppointmentAgent.build_agent(),
+            # OrderAgent.create_agent(), 
             IDVAgent.create_agent()
         ],
-        default_active_agent=NodeName.appointment_agent.value,
-        state_schema=CustomState,
+        default_active_agent='provider_agent',
+        state_schema=MainState,
         config_schema=Configuration,
     ).compile(name='main_graph')
 )

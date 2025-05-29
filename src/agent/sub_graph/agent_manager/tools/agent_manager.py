@@ -1,8 +1,8 @@
 from langchain_core.tools import tool, InjectedToolCallId
-from agent.state import CustomState
+from agent.state import MainState
 from typing import Literal
 from langchain_core.tools import tool
-from agent.utils.node_names import NodeName
+from utils.node_names import NodeName
 from typing import Annotated
 from langgraph.prebuilt import InjectedState
 from langgraph.types import Command
@@ -10,7 +10,7 @@ from langchain_core.messages import ToolMessage
 
 @tool('handoff_to_appointment_agent', description=" tool to transfer the control to appointment agent")
 def handoff_to_appointment_agent(
-      state: Annotated[CustomState, InjectedState], 
+      state: Annotated[MainState, InjectedState], 
       tool_call_id: Annotated[str, InjectedToolCallId]
 ) -> Command[Literal["appointment_agent"]]:
    return Command(
@@ -23,7 +23,7 @@ def handoff_to_appointment_agent(
 
 @tool('handoff_to_order_agent', description=" tool to transfer the control to order agent")
 def handoff_to_order_agent(
-      state: Annotated[CustomState, InjectedState], 
+      state: Annotated[MainState, InjectedState], 
       tool_call_id: Annotated[str, InjectedToolCallId]
 ) -> Command[Literal["order_agent"]]:
    return Command(

@@ -1,16 +1,19 @@
 from langchain_openai import ChatOpenAI
-from agent.state import CustomState
-from agent.utils.node_names import NodeName 
+from agent.state import MainState
+from utils.node_names import NodeName 
 from agent.sub_graph.appointment.tools.appointments import get_appointments, transfer_to_idv_agent, transfer_to_order_agent, welcome_message
 from langgraph_supervisor import create_supervisor
 from agent.sub_graph.idv.idv import IDVAgent
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import SystemMessage
+from core.agent_builder.agent_builder import AgentBuilder
+from mock.agent import agent_config
+from utils.utils import create_handoff_tool
 
 class AppointmentAgent:
 
   @staticmethod
-  def agent_prompt(state: CustomState):
+  def agent_prompt(state: MainState):
     
     system_prompt = f"""
       You are an intelligent assistant whose responsibilties is to answer the appointment related queries using the
@@ -78,7 +81,7 @@ class AppointmentAgent:
   def create_agent():
     appointment_agent = create_react_agent(
       model=ChatOpenAI(model="gpt-4o-mini"),
-      state_schema=CustomState,
+      state_schema=MainState,
       tools=[get_appointments, transfer_to_idv_agent, transfer_to_order_agent, welcome_message],
       prompt=AppointmentAgent.agent_prompt,
       name=NodeName.appointment_agent.value,
@@ -87,7 +90,7 @@ class AppointmentAgent:
     return appointment_agent
   
   @staticmethod
-  def agent_prompt_for_supervisor(state: CustomState):
+  def agent_prompt_for_supervisor(state: MainState):
 
     if state.get('is_authorized') is None or state.get('is_authorized') == False:
       system_prompt = f"""
@@ -122,10 +125,24 @@ class AppointmentAgent:
         tools=[get_appointments],
         agents=[IDVAgent.create_agent()],
         model=ChatOpenAI(model="gpt-4o-mini"),
-        state_schema=CustomState,
+        state_schema=MainState,
         prompt=AppointmentAgent.agent_prompt_for_supervisor,
         supervisor_name="appointment_agent_supervisor",
         output_mode="full_history"
     )
 
     return workflow.compile(name=NodeName.appointment_agent.value)
+  
+  
+  @staticmethod
+  def build_agent():
+    
+    appointment_agent = AgentBuilder().set_handoff_tools(
+      handoff_tools=[]
+      ).build(
+      name=agent_config['display_name'].lower(),
+      prompt=AppointmentAgent.agent_prompt,
+      agent_config=agent_config,
+    )
+    
+    return appointment_agent
