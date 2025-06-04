@@ -7,7 +7,7 @@ from agent.sub_graph.idv.idv import IDVAgent
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import SystemMessage
 from core.agent_builder.agent_builder import AgentBuilder
-from mock.agent import agent_config
+from mock.agent import provider_agent
 from utils.utils import create_handoff_tool
 
 class AppointmentAgent:
@@ -137,12 +137,12 @@ class AppointmentAgent:
   @staticmethod
   def build_agent():
     
-    appointment_agent = AgentBuilder().set_handoff_tools(
+    agent = AgentBuilder().set_handoff_tools(
       handoff_tools=[]
       ).build(
-      name=agent_config['display_name'].lower(),
+      name=provider_agent['display_name'].lower(),
       prompt=AppointmentAgent.agent_prompt,
-      agent_config=agent_config,
+      agent_config=provider_agent,
     )
     
-    return appointment_agent
+    return agent

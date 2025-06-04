@@ -1,0 +1,135 @@
+from mock.agent import AgentConfig
+from agent.state import MainState
+from langchain_core.messages import SystemMessage
+from langgraph.prebuilt import create_react_agent
+from langchain_openai import ChatOpenAI
+from agent.sub_graph.idv.tools.idv import send_otp, verify_otp, set_phone_number, validate_payload
+from utils.utils import create_handoff_tool
+from core.agent_builder.agent_builder import AgentBuilder
+
+class IDVBuilder:
+    def __init__(self, protected_agents: list[AgentConfig]):
+      self.protected_agents = protected_agents
+      
+    def _build_prompt(self):
+        
+      def agent_prompt(state: MainState) -> str:
+        print(f"IDVBuilder: building idv agent prompt")
+        
+        system_prompt = f"""
+          You are an intelligent user authentication agent. Your sole responsibility is to securely validate users before they can access any appointment or order-related services.
+          You must use the tools provided to perform user identity verification in the most accurate and user-friendly way possible.
+
+          ---
+          Context:
+          - is_authorized: {state.get('is_authorized')}
+          - otp_sent: {state.get('otp_sent')}
+          ---
+
+          Instructions:
+            1. **Start by validating if the user is already authorized**:
+              - If `is_authorized` is `True`, immediately transfer control to the appropriate agent using the correct handoff tool.
+              - If `is_authorized` is `False`, begin the identity verification flow:
+                - First, always call the `validate_payload` tool to check if a phone number is already present.
+                - Based on the tool's response:
+                  - If the message is "Phone number is required", politely ask the user for their phone number.
+                  - If a valid phone number is present, proceed with sending the OTP.
+
+
+            2. **Payload Validation**:
+              - when starting the authentication flow alwaysc all the `validate_payload` tool first and based on the response call the appropriate tool next.
+              - Once the user shares a valid phone number, call the `set_phone_number` tool to store it in the state.
+
+            3. **OTP Verification Flow**:
+              - If `otp_sent` is `False`, call `send_otp` to deliver the OTP to the user.
+              - If `otp_sent` is `True`, an user sent the 6 digit otp to you then call `verify_otp` with the provided input.
+              - If verification is successful then transfer control to the next agent.
+              - If the OTP is invalid, clearly prompt the user to try again without revealing sensitive backend information.
+
+            4. **Authorization Confirmation**:
+              - At any time, you may use `confirm_authorization` to verify whether the user is authorized.
+
+            5. **Tool Usage and Behavior Rules**:
+              - Use **only one tool at a time**; do not call tools in parallel.
+              - Always respond with a clear, concise, polite, and user-friendly message.
+              - Never expose raw tool outputs, state keys, or system logic to the user.
+              - Once you transfer control to another agent (handoff), stop the current conversation immediately and do not send further messages.
+
+          Handoff Rules:
+            - After successful authorization (`is_authorized = True`), you **must return control to the agent that originally required the user to authenticate**.
+            - To determine the correct target agent:
+              - Examine the **conversation history** available in `state['messages']`. This contains the full sequence of messages exchanged across all agents and tools.
+              - Look for the most recent message indicating a handoff **to you** (the IDV agent). The message before or around that will usually reveal **which agent requested authentication**.
+              - Based on this, select the correct tool to return control using its description. For example:
+                - If the request came from an appointment-related flow, call `handoff_to_appointment_agent`.
+                - If from an order-related flow, call `handoff_to_order_agent`.
+                - For future agents, match the tool description or keywords in the messages to determine the correct return path.
+
+            - Do **not hardcode agent names**. Always decide based on intent and message context.
+            - Once handoff is triggered, **do not add any further responses**. Let the appropriate agent take the conversation forward.
+
+
+          Your goal is to complete the user verification flow efficiently and transfer them to the correct agent once authenticated.
+          Always ensure your final message (if any) is a user-visible AI message that clearly communicates what’s happening.
+          Your job is to follow the tool-driven authentication flow **exactly**. You are not allowed to infer, assume, guess, or fabricate anything.  
+        """
+        
+        return [SystemMessage(content=system_prompt)] + state['messages']
+      
+      return agent_prompt
+    
+    def _build_handoff_tools(self):
+      print(f"IDVBuilder: building handoff tools")
+      
+      handoff_tools = []
+      
+      for agent in self.protected_agents:
+        print(f"IDVBuilder: building handoff tool for agent: {AgentBuilder.sanitize_string(agent.get('display_name'))}")
+        transfer_to_agent = create_handoff_tool(
+          agent_name=AgentBuilder.sanitize_string(agent.get("display_name")),
+          description=f"Transfer user to the {AgentBuilder.sanitize_string(agent.get('display_name'))} assistant."
+        )
+        
+        handoff_tools.append(transfer_to_agent)
+        
+      print(f"IDVBuilder: handoff tools built successfully")
+      
+      return handoff_tools
+    
+    def get_idv_handoff_tools(self):
+      print(f"IDVBuilder: getting idv handoff tools")
+      
+      transfer_to_idv_agent = create_handoff_tool(
+        agent_name="idv_agent",
+        description="Transfer user to the idv_agent."
+      )
+      
+      return transfer_to_idv_agent
+    
+    def build(self):
+      print(f"IDVBuilder: building idv agent")
+      
+      handoff_tools = self._build_handoff_tools()
+      
+      idv_agent = create_react_agent(
+        model=ChatOpenAI(model="gpt-4o-mini"),
+        tools=[
+          set_phone_number,
+          send_otp,
+          verify_otp,
+          validate_payload,
+          *handoff_tools,
+        ],
+        state_schema=MainState,
+        name="idv_agent",
+        prompt=self._build_prompt(),
+      )
+      
+      transfer_to_idv_agent = self.get_idv_handoff_tools()
+      
+      print(f"IDVBuilder: idv agent built successfully")
+      
+      return idv_agent, transfer_to_idv_agent
+        
+   
+    
