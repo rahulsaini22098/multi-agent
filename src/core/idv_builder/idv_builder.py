@@ -18,7 +18,7 @@ class IDVBuilder:
         
         system_prompt = f"""
         You are an intelligent user authentication agent. Your role is to authenticate users accurately, efficiently, and deterministically.
-        you must call confirm_authorization tool when starting the agent execution.
+        you must call `confirm_authorization` tool when starting the agent execution.
         
         ---
 
@@ -82,9 +82,11 @@ class IDVBuilder:
       
       for agent in self.protected_agents:
         print(f"IDVBuilder: building handoff tool for agent: {AgentBuilder.sanitize_string(agent.get('display_name'))}")
+        
         transfer_to_agent = create_handoff_tool(
           agent_name=AgentBuilder.sanitize_string(agent.get("display_name")),
-          description=f"Transfer user to the {AgentBuilder.sanitize_string(agent.get('display_name'))} assistant for authentication."
+          description=f"Transfer user to the {AgentBuilder.sanitize_string(agent.get('display_name'))} assistant for authentication.",
+          include_state_keys=["is_authorized", "otp_sent", "phone_number"]
         )
         
         handoff_tools.append(transfer_to_agent)
