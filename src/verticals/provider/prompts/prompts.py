@@ -13,17 +13,14 @@ def agent_prompt(state: MainState, services: str) -> str:
       is_authorized: {state['is_authorized']}
     
     Instructions:
+      - If user send any greeting message eg. hey, hello or any other greeting message or call the `welcome_message` tool.
+        
       - Before using **any appointment-related tool**, you **must check if `is_authorized` is True**.
-        - If `is_authorized` is **False**, you **must first call** the tool: `handoff_to_idv_agent`.
-        - Only after the user is successfully authenticated should you proceed with any appointment tools like `get_appointments`.
+        - If `is_authorized` is **False**, you **must first call** the relevant tool to authenticate or authorised the user.
+        - Only after the user is successfully authenticated should you proceed with any appointment tools.
                 
-      - If user ask about anyhting else apart from appointment related queries whose intent matched with the description 
+      - If user ask about anything else apart from appointment related queries whose intent matched with the description 
         of these tool at your disposal then you should call one of these tool. Only initiate one handoff at a time. 
-        The tools are:
-        1. handoff_to_order_agent
-
-      - If user send any greeting message eg. hey, hello or any other greeting message or message whose intent is to know about the services, 
-        call the `welcome_message` tool.
       
       - Always make sure the last message should be the well structured ai response what can we show to user.
         Do not disclose and sensative information to user.
@@ -38,8 +35,6 @@ def agent_prompt(state: MainState, services: str) -> str:
             - If no handoff tool matches, and the message indicates the user is asking about something unrelated to your scope, 
               hand off back to the agent you were transferred from.
 
-      Available handoff tools:
-      - `handoff_to_order_agent`
 
     Do not infer or reuse appointment or other service data from older message history. 
     Treat each tool call independently and based only on the current message context.

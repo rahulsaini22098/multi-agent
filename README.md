@@ -86,11 +86,11 @@ Initial state for langstudio
   "phone_number": "9876543210",
   "is_authorized": false,
   "otp_sent": false,
-  "customer_id": 101,
-  "welcome_message": "hey, I welcome to the modern asistant",
+  "customer_id": "101",
+  "welcome_message": "hey, welcome to the modern world. How can i assist you today",
   "messages": [
     {
-      "content": "hey",
+      "content": "i want to see my appointment",
       "type": "human"
     }
   ]

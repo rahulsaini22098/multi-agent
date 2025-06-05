@@ -130,7 +130,7 @@ def confirm_authorization(state: Annotated[MainState, InjectedState], tool_call_
     if state['is_authorized'] is True:
       return Command(
           update={
-              "messages": state['messages'] + [ToolMessage(content="Authorization confirmed", tool_call_id=tool_call_id)]
+              "messages": state['messages'] + [ToolMessage(content="User is authorized", tool_call_id=tool_call_id)]
           }
       )
     else:

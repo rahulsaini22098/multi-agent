@@ -12,6 +12,7 @@ from verticals.provider.prompts.prompts import agent_prompt
 
 class AgentBuilder:
   _agent_services: list[str] = []
+  _default_tools: list[BaseTool] = []
   
   @staticmethod
   def sanitize_string( value: str) -> str:
@@ -34,9 +35,9 @@ class AgentBuilder:
     
     def system_prompt(state: MainState):
       
-      system_prompt = agent_prompt(state, self._agent_services)
+      prompt = agent_prompt(state, "\n".join(self._agent_services))
 
-      return [SystemMessage(content=system_prompt)] + state["messages"]
+      return [SystemMessage(content=prompt)] + state["messages"]
     
     return system_prompt
   
@@ -51,6 +52,9 @@ class AgentBuilder:
         self._agent_services.append(f"- {all_tools[tool_name]['description']} (via the `{tool_name}` tool)")
       else:
         print(f"AgentBuilder: Tool {tool_name} not found in all_tools")
+    
+    tools.append(all_tools["welcome_message"]["tool"])
+    self._agent_services.append(f"- {all_tools['welcome_message']['description']} (via the `welcome_message` tool)")
     
     return tools
   
@@ -70,7 +74,7 @@ class AgentBuilder:
     # create agent graph
     agent_graph: CompiledGraph = create_react_agent(
       model=ChatOpenAI(model="gpt-4o-mini"),
-      tools=[*configured_tools, *self._handoff_tools],
+      tools=[*configured_tools, *self._handoff_tools, *self._default_tools],
       state_schema=MainState,
       name=self.sanitize_string(name),
       prompt=self._build_system_prompt(),

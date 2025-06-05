@@ -2,7 +2,7 @@ from verticals.provider.tools import ProviderToolsJson, welcome_message, get_app
 
 provider_tools_json: ProviderToolsJson = {
    "welcome_message": {
-      "description": "return welcome message to the customer",
+      "description": "welcome message to the customer",
       "tool": welcome_message
     },
    "get_appointments": {

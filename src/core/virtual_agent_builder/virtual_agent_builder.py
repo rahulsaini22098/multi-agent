@@ -10,7 +10,7 @@ class VirtualAgentBuilder:
     def __init__(self, virtual_agent: VirtualAgent, agents: list[AgentConfig]):
         self.virtual_agent: VirtualAgent = virtual_agent
         self.agents: list[AgentConfig] = agents
-        self.default_tools: list[BaseTool] = []
+        self.default_handoff_tools: list[BaseTool] = []
         self.default_agents: list[CompiledGraph] = []
     
     @classmethod
@@ -47,7 +47,7 @@ class VirtualAgentBuilder:
         other_agent_names = [AgentBuilder.sanitize_string(other_agent.get("display_name")) for other_agent in agents if other_agent.get("agent_id") != agent.get("agent_id")]
         handoff_tools = self._build_handoff_tools(other_agent_names)  
         
-        agent_builder.set_handoff_tools([*handoff_tools, *self.default_tools])
+        agent_builder.set_handoff_tools([*handoff_tools, *self.default_handoff_tools])
         
         agent_graph = agent_builder.build(
             name=agent.get("display_name"), 
@@ -67,7 +67,7 @@ class VirtualAgentBuilder:
             idv_agent, transfer_to_idv_agent = IDVBuilder(protected_agents).build()
             
             self.default_agents.append(idv_agent)
-            self.default_tools.append(transfer_to_idv_agent)            
+            self.default_handoff_tools.append(transfer_to_idv_agent)            
                     
         print(f"VirtualAgentBuilder: idv agent initialized successfully")
         
