@@ -13,7 +13,8 @@ def create_handoff_tool(
   agent_name: str, 
   name: str | None = None, 
   description: str | None = None,
-  include_state_keys: Optional[list[str]] = None
+  include_state_keys: Optional[list[str]] = None,
+  return_direct: bool = False
 ) -> BaseTool:
   """Create a tool that can handoff control to the requested agent.
 
@@ -37,7 +38,7 @@ def create_handoff_tool(
       
   include_state_keys = include_state_keys or []
 
-  @tool(name, description=description)
+  @tool(name, description=description, return_direct=return_direct)
   def handoff_to_agent(
     state: Annotated[dict, InjectedState],
     tool_call_id: Annotated[str, InjectedToolCallId],

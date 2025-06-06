@@ -84,13 +84,13 @@ Initial state for langstudio
 {
   "active_agent": "provider_agent",
   "phone_number": "9876543210",
-  "is_authorized": false,
+  "is_authorized": true,
   "otp_sent": false,
-  "customer_id": "101",
+  "customer_id": "CUST-1000",
   "welcome_message": "hey, welcome to the modern world. How can i assist you today",
   "messages": [
     {
-      "content": "i want to see my appointment",
+      "content": "i want to see my appointment and see my orders",
       "type": "human"
     }
   ]

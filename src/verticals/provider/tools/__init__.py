@@ -1,31 +1,35 @@
 from .tools import (
     welcome_message,
     get_appointments,
-    transfer_to_idv_agent,
-    transfer_to_order_agent
+    book_appointment,
+    confirm_appointment,
+    cancel_appointment,
 )
 from .tool_types import (
     WELCOME_MESSAGE,
     GET_APPOINTMENTS,
-    TRANSFER_TO_IDV_AGENT,
-    TRANSFER_TO_ORDER_AGENT,
+    BOOK_APPOINTMENT,
+    CONFIRM_APPOINTMENT,
+    CANCEL_APPOINTMENT,
+    RESCHEDULE_APPOINTMENT,
     ALL_TOOL_NAMES,
     ToolName,
     ProviderToolsJson,
-    ProviderHandoffToolsJson,
 )
 
 __all__ = [
     welcome_message,
     get_appointments,
-    transfer_to_idv_agent,
-    transfer_to_order_agent,
+    book_appointment,
+    confirm_appointment,
+    cancel_appointment,
     WELCOME_MESSAGE,
     GET_APPOINTMENTS,
-    TRANSFER_TO_IDV_AGENT,
-    TRANSFER_TO_ORDER_AGENT,
+    BOOK_APPOINTMENT,
+    CONFIRM_APPOINTMENT,
+    CANCEL_APPOINTMENT,
+    RESCHEDULE_APPOINTMENT,
     ALL_TOOL_NAMES,
     ToolName,
     ProviderToolsJson,
-    ProviderHandoffToolsJson,
 ] 

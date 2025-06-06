@@ -42,17 +42,14 @@ class VirtualAgentBuilder:
     def _build_agent_graph(self, agent: AgentConfig):
         print(f"VirtualAgentBuilder: building agent graph for agent: {agent.get('agent_id')} name {agent.get('display_name')}")
         
-        agent_builder = AgentBuilder()
+        agent_builder = AgentBuilder(agent)
         
         other_agent_names = [AgentBuilder.sanitize_string(other_agent.get("display_name")) for other_agent in agents if other_agent.get("agent_id") != agent.get("agent_id")]
         handoff_tools = self._build_handoff_tools(other_agent_names)  
         
         agent_builder.set_handoff_tools([*handoff_tools, *self.default_handoff_tools])
         
-        agent_graph = agent_builder.build(
-            name=agent.get("display_name"), 
-            agent_config=agent
-        )
+        agent_graph = agent_builder.build()
         
         print(f"VirtualAgentBuilder: agent graph built successfully")
         

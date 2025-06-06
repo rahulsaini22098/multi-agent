@@ -1,18 +1,22 @@
-from typing import List, Union, Callable
+from typing import List
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import BaseTool
 from agent.state import MainState
 from langgraph.graph.graph import CompiledGraph
 from langchain_openai import ChatOpenAI
-from mock.agent import AgentConfig, Vertical
+from mock.agent import AgentConfig
 from langchain_core.messages import SystemMessage
 from core.tools import all_tools
 import re
-from verticals.provider.prompts.prompts import agent_prompt
+from core.prompts.all_prompts import all_prompts
 
 class AgentBuilder:
+  _agent: AgentConfig
   _agent_services: list[str] = []
   _default_tools: list[BaseTool] = []
+  
+  def __init__(self, agent: AgentConfig):
+    self._agent = agent
   
   @staticmethod
   def sanitize_string( value: str) -> str:
@@ -32,10 +36,11 @@ class AgentBuilder:
   
   def _build_system_prompt(self):
     print("AgentBuilder: build system prompt")
+    prompt_by_vertical = all_prompts[self._agent.get('vertical')]
     
     def system_prompt(state: MainState):
       
-      prompt = agent_prompt(state, "\n".join(self._agent_services))
+      prompt = prompt_by_vertical(state, "\n".join(self._agent_services))
 
       return [SystemMessage(content=prompt)] + state["messages"]
     
@@ -59,36 +64,35 @@ class AgentBuilder:
     return tools
   
   
-  
   def set_handoff_tools(self, handoff_tools: List[BaseTool]):
     self._handoff_tools = handoff_tools
     
     return self
   
   
-  def _create_agent(self, name: str, agent_config: AgentConfig) -> CompiledGraph:
+  def _create_agent(self) -> CompiledGraph:
     print(f"AgentBuilder: initilizing agent")
     
-    configured_tools = self._build_tools(configured_tools=agent_config["configured_tools"])
+    configured_tools = self._build_tools(configured_tools=self._agent["configured_tools"])
     
     # create agent graph
     agent_graph: CompiledGraph = create_react_agent(
-      model=ChatOpenAI(model="gpt-4o-mini"),
+      model=ChatOpenAI(model="gpt-4o-mini").bind_tools([*configured_tools, *self._handoff_tools, *self._default_tools], parallel_tool_calls=False),
       tools=[*configured_tools, *self._handoff_tools, *self._default_tools],
       state_schema=MainState,
-      name=self.sanitize_string(name),
+      name=self.sanitize_string(self._agent.get('display_name')),
       prompt=self._build_system_prompt(),
     )
     
     return agent_graph
   
   
-  def build(self, name: str, agent_config: AgentConfig) -> CompiledGraph:
-    print(f"AgentBuilder: Building agent name: {self.sanitize_string(name)}")
+  def build(self) -> CompiledGraph:
+    print(f"AgentBuilder: Building agent name: {self.sanitize_string(self._agent.get('display_name'))}")
     
-    agent_graph = self._create_agent(name, agent_config)
+    agent_graph = self._create_agent()
     
-    print(f"AgentBuilder: Agent name: {self.sanitize_string(name)} built successfully")
+    print(f"AgentBuilder: Agent name: {self.sanitize_string(self._agent.get('display_name'))} built successfully")
     
     return agent_graph
     

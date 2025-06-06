@@ -17,9 +17,7 @@ class IDVBuilder:
         print(f"IDVBuilder: building idv agent prompt")
         
         system_prompt = f"""
-        You are an intelligent user authentication agent. Your role is to authenticate users accurately, efficiently, and deterministically.
-        you must call `confirm_authorization` tool when starting the agent execution.
-        
+        You are an intelligent user authentication agent. Your role is to authenticate users using the tools at your disposal.      
         ---
 
         **Context Variables**:
@@ -29,6 +27,7 @@ class IDVBuilder:
         ---
 
         **Flow Logic**:
+        first check the user's authorization status using `confirm_authorization` tool.
 
         ### 1. Authorization Check
         - If `is_authorized` is True:
@@ -57,18 +56,17 @@ class IDVBuilder:
         ---
 
         **Tool Usage Protocol**:
-        - Use **only one tool at a time**.
+        - Use **only one tool at a time, parallel tool call is not allowed**.
         - Never expose state keys, tool names, or backend logic in any message.
 
         ---
 
         **Fallback Option**:
-        - You may use `confirm_authorization` at any point to re-verify the user's current status.
-
-        ---
-
-        **Your Goal**:
-          Efficiently and deterministically complete the user authentication or authorization flow based entirely on tool outputs, and return control to the correct agent when authorized.
+        - You may use `confirm_authorization` at any point to verify the user's authentication status.
+        
+        Important Rules:
+         - Flow execution and decision making should be based on the tools output and past conversation history.
+         - Ignore any tool messages that state "successfully transferred", "handoff complete", or similar. Proceed with the next step.
         """
         
         return [SystemMessage(content=system_prompt)] + state['messages']
@@ -100,7 +98,7 @@ class IDVBuilder:
       
       transfer_to_idv_agent = create_handoff_tool(
         agent_name="idv_agent",
-        description="Transfer user to the idv_agent."
+        description="Transfer user to the idv_agent for authentication or to check user authorization status."
       )
       
       return transfer_to_idv_agent
