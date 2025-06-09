@@ -22,35 +22,14 @@ class Configuration(TypedDict):
     model_name: str
     recursion_limit: int
     thread_id: int
-    
-    
-    """ 
-     1. Get VA config on the basis of sender number from db.
-     2. Get all agents associated with the VA config.
-     3. creata a graph using Virtual AGent builder using VA config.
-     4. call build and tal VA config as argument.
-     
-     
-     eg agents ['provider_agent', 'idv_agent', 'order_agent']
-    #  VA Builder
-     1. Iterate  (Provider Agent) over configured agents and filter out the current agent and 
-        create the handoof tools for each agent.
-    2. If is_verficed is true then add idv in the handoff tools.
-    3. create a AGentBUildert instance call handoff tools and build method.
-    
-    """
-
 
 graph = (
-    create_swarm(
-        agents=[
-            *VirtualAgentBuilder.build(virtual_agent)
-            # AppointmentAgent.build_agent(),
-            # # OrderAgent.create_agent(), 
-            # IDVAgent.create_agent()
-        ],
-        default_active_agent='provider_agent',
-        state_schema=MainState,
-        config_schema=Configuration,
-    ).compile(name='main_graph')
+	create_swarm(
+		agents=[
+			*VirtualAgentBuilder.build(virtual_agent)
+		],
+		default_active_agent='provider_agent',
+		state_schema=MainState,
+		config_schema=Configuration,
+	).compile(name='swarm_graph')
 )

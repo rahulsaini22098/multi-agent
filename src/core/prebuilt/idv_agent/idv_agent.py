@@ -7,7 +7,7 @@ from agent.sub_graph.idv.tools.idv import send_otp, verify_otp, set_phone_number
 from utils.utils import create_handoff_tool
 from core.agent_builder.agent_builder import AgentBuilder
 
-class IDVBuilder:
+class IdvAgent:
     def __init__(self, protected_agents: list[AgentConfig]):
       self.protected_agents = protected_agents
       

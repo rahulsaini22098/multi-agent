@@ -3,8 +3,17 @@ from mock.agent import AgentConfig, agents
 from core.agent_builder.agent_builder import AgentBuilder
 from langgraph.graph.graph import CompiledGraph
 from utils.utils import create_handoff_tool
-from core.idv_builder.idv_builder import IDVBuilder
+from core.prebuilt.idv_agent.idv_agent import IdvAgent
 from langchain_core.tools import BaseTool
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage
+from langgraph.graph import END
+from langgraph.types import Command
+from agent.state import MainState
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
+from core.prebuilt.finalizer_agent.finalizer_agent import FinalizerAgent
 
 class VirtualAgentBuilder:
     def __init__(self, virtual_agent: VirtualAgent, agents: list[AgentConfig]):
@@ -61,7 +70,7 @@ class VirtualAgentBuilder:
         protected_agents = [agent for agent in self.agents if agent.get("needs_verification") == True]
         
         if len(protected_agents) > 0:
-            idv_agent, transfer_to_idv_agent = IDVBuilder(protected_agents).build()
+            idv_agent, transfer_to_idv_agent = IdvAgent(protected_agents).build()
             
             self.default_agents.append(idv_agent)
             self.default_handoff_tools.append(transfer_to_idv_agent)            
@@ -70,10 +79,23 @@ class VirtualAgentBuilder:
         
         return True
     
+    def _build_finalizer(self):
+        print(f"VirtualAgentBuilder: building finalizer")
+        
+        finalizer, transfer_to_finalizer_agent = FinalizerAgent().build()
+        
+        self.default_agents.append(finalizer)
+        self.default_handoff_tools.append(transfer_to_finalizer_agent)
+        
+        print(f"VirtualAgentBuilder: finalizer built successfully")
+        
+        return finalizer
+   
     def _build_agents(self) -> list[CompiledGraph]:
         compiled_agent_graphs: list[CompiledGraph] = []
         
         self.initilize_idv_agent()
+        # self._build_finalizer()
         
         for agent in self.default_agents:
             compiled_agent_graphs.append(agent)

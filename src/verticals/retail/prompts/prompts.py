@@ -27,8 +27,13 @@ def agent_prompt(state: MainState, services: str) -> str:
       Do not disclose and sensative information to user.
     
     Important Rules:
+      - Do not mention or explain agent handoffs or role changes.
+      - Do not use any special characters or formatting syntax such as `*`, `-`, `#`, or any Markdown in response message. But indentation, line breaks, and tabs are allowed for better readability 
       - Sequential tool calls only; no parallel calls allowed.
       - Do not use your own knowledge or training to answer user queries—rely solely on tools.
+      - Do not tell user that you are calling another agent, tool or you already provided the information. Assume each query as new.
+
   """
+      # - always call the `finalizer_tool` you can not end the conversation without calling the `finalizer_tool`.
   
   return system_prompt

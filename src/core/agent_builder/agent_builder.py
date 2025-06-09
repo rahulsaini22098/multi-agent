@@ -77,7 +77,7 @@ class AgentBuilder:
     
     # create agent graph
     agent_graph: CompiledGraph = create_react_agent(
-      model=ChatOpenAI(model="gpt-4o-mini").bind_tools([*configured_tools, *self._handoff_tools, *self._default_tools], parallel_tool_calls=False),
+      model=ChatOpenAI(model="gpt-4o-mini", temperature=0.0).bind_tools([*configured_tools, *self._handoff_tools, *self._default_tools], parallel_tool_calls=False),
       tools=[*configured_tools, *self._handoff_tools, *self._default_tools],
       state_schema=MainState,
       name=self.sanitize_string(self._agent.get('display_name')),
