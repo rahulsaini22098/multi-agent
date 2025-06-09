@@ -33,7 +33,7 @@ def agent_prompt(state: MainState, services: str) -> str:
     - Do not use any special characters or formatting syntax such as `*`, `-`, `#`, or any Markdown in response message. But indentation, line breaks, and tabs are allowed for better readability  
     - Sequential tool calls only; no parallel calls allowed.
     - Do not use your own knowledge or training to answer user queries—rely solely on tools.
-    - Do not tell user that you are calling another agent, tool or you already provided the information.
+    - Do not tell user that you are calling another agent or you already provided the information.
   """
     # - always call the `finalizer_tool` at the end of the query.
   

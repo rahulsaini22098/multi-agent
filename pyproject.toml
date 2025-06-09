@@ -34,7 +34,7 @@ packages = [
     "verticals",
     "verticals.provider",
     "verticals.provider.tools",
-    "verticals.provider.prompts"
+    "verticals.provider.prompts",
     "mock",
     "lib"
 ]
