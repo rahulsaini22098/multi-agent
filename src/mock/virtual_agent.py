@@ -58,7 +58,8 @@ virtual_agent: VirtualAgent = {
     "welcome_greeting": "Welcome to Modern Clinic.",
     "configured_agent_ids": [
         "b558b61e-cc43-456e-aea8-cfde78e1cbf4",
-        "c76e2f31-5a08-4e27-9c19-04d6b1c724a8"
+        "c76e2f31-5a08-4e27-9c19-04d6b1c724a8",
+        "f47ac10b-58cc-0372-8567-0e02b2c3d479"
     ],
     "configured_channels": ["voice"],
     "is_inform_flow_enabled": True,

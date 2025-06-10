@@ -146,7 +146,34 @@ retail_agent: AgentConfig = {
   "needs_verification": True
 }
 
+# Banking agent configuration
+banking_agent: AgentConfig = {
+  "_id": {"$oid": "6835b25cbc4d1772725d5c33"},
+  "agent_id": "f47ac10b-58cc-0372-8567-0e02b2c3d479",
+  "account_id": "test-account-1",
+  "display_name": "Banking Agent",
+  "description": "Manages customer banking operations such as authentication, balance inquiries, transfers, and deductions.",
+  "vertical": Vertical.BANKING.value,
+  "instruction_provided": "Create a banking assistant that authenticates users and manages balance inquiries, fund transfers, and deductions.",
+  "agent_status": "published",
+  "agent_source": "user",
+  "configured_state_schema": {
+    "phone_number": {"type": "string", "description": "Phone number for authentication"},
+    "customer_id": {"type": ["string", "null"], "description": "Authenticated customer ID"},
+    "is_authorized": {"type": "boolean", "description": "Authorization status"},
+    "otp_sent": {"type": "boolean", "description": "Whether OTP has been sent"}
+  },
+  "configured_tools": ["authenticate_user", "get_balance", "transfer_money", "deduct_amount"],
+  "configured_system_prompt": "OBJECTIVE: Assist users with banking operations including authentication, balance inquiries, transfers, and fee deductions.",
+  "configured_completion_marker": "FLOW_COMPLETE",
+  "created_by": "1",
+  "updated_by": "1",
+  "needs_verification": True,
+  "__v": 0
+}
+
 agents: List[AgentConfig] = [
   provider_agent,
   retail_agent,
+  banking_agent,
 ]

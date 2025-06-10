@@ -1,4 +1,4 @@
-from verticals.provider.tools import ProviderToolsJson, welcome_message, get_appointments, book_appointment, confirm_appointment, cancel_appointment
+from verticals.provider.tools import ProviderToolsJson, welcome_message, get_appointments, book_appointment, confirm_appointment, cancel_appointment, create_appointment, reschedule_appointment, get_appointment_details, list_services
 
 provider_tools_json: ProviderToolsJson = {
    "welcome_message": {
@@ -20,6 +20,22 @@ provider_tools_json: ProviderToolsJson = {
    "cancel_appointment": {
       "description": "This tool is used to cancel an appointment for the customer. It requires appointment id from the customer.",
       "tool": cancel_appointment
+    },
+   "create_appointment": {
+      "description": "Create a new appointment for the customer.",
+      "tool": create_appointment
+    },
+   "reschedule_appointment": {
+      "description": "Reschedule an existing appointment for the customer.",
+      "tool": reschedule_appointment
+    },
+   "get_appointment_details": {
+      "description": "Get details of a specific appointment for the customer.",
+      "tool": get_appointment_details
+    },
+   "list_services": {
+      "description": "List all available services to the customer.",
+      "tool": list_services
     }
 }
 

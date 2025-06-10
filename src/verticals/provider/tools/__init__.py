@@ -4,6 +4,10 @@ from .tools import (
     book_appointment,
     confirm_appointment,
     cancel_appointment,
+    create_appointment,
+    reschedule_appointment,
+    get_appointment_details,
+    list_services,
 )
 from .tool_types import (
     WELCOME_MESSAGE,
@@ -23,6 +27,10 @@ __all__ = [
     book_appointment,
     confirm_appointment,
     cancel_appointment,
+    create_appointment,
+    reschedule_appointment,
+    get_appointment_details,
+    list_services,
     WELCOME_MESSAGE,
     GET_APPOINTMENTS,
     BOOK_APPOINTMENT,
@@ -32,4 +40,4 @@ __all__ = [
     ALL_TOOL_NAMES,
     ToolName,
     ProviderToolsJson,
-] 
+]

@@ -9,7 +9,7 @@ from langchain_core.tools import tool
 from mock.provider import providerStore, Appointment, AppointmentStatus
 import uuid
 from utils.datetime import get_current_datetime_in_ist
-from .tool_types import BOOK_APPOINTMENT, CONFIRM_APPOINTMENT, CANCEL_APPOINTMENT, RESCHEDULE_APPOINTMENT, GET_APPOINTMENTS, WELCOME_MESSAGE
+from .tool_types import BOOK_APPOINTMENT, CONFIRM_APPOINTMENT, CANCEL_APPOINTMENT, RESCHEDULE_APPOINTMENT, GET_APPOINTMENTS, WELCOME_MESSAGE, CREATE_APPOINTMENT, GET_APPOINTMENT_DETAILS, LIST_SERVICES
 
 
 @tool(
@@ -217,3 +217,28 @@ def cancel_appointment(
       "messages": state['messages'] + [ ToolMessage(content=f"Appointment {appointment_id} cancelled successfully", tool_call_id=tool_call_id) ]
     }
   )
+""" Define stub implementation for create_appointment """
+@tool(CREATE_APPOINTMENT, description="Create a new appointment for the customer.")
+def create_appointment(state: Annotated[MainState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]):
+    tool_message = ToolMessage(content="Appointment created successfully.", tool_call_id=tool_call_id)
+    return Command(update={"messages": state['messages'] + [tool_message]})
+
+""" Define stub implementation for reschedule_appointment """
+@tool(RESCHEDULE_APPOINTMENT, description="Reschedule an existing appointment for the customer.")
+def reschedule_appointment(state: Annotated[MainState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]):
+    tool_message = ToolMessage(content="Appointment rescheduled successfully.", tool_call_id=tool_call_id)
+    return Command(update={"messages": state['messages'] + [tool_message]})
+
+""" Define stub implementation for get_appointment_details """
+@tool(GET_APPOINTMENT_DETAILS, description="Get details of a specific appointment for the customer.")
+def get_appointment_details(state: Annotated[MainState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]):
+    details = json.dumps({"appointment_id": "sample-id", "date": "2024-01-01", "time": "10:00 AM"})
+    tool_message = ToolMessage(content=details, tool_call_id=tool_call_id)
+    return Command(update={"messages": state['messages'] + [tool_message]})
+
+""" Define stub implementation for list_services """
+@tool(LIST_SERVICES, description="List all available services to the customer.")
+def list_services(state: Annotated[MainState, InjectedState], tool_call_id: Annotated[str, InjectedToolCallId]):
+    services = json.dumps(["Consultation", "Checkup", "Therapy"])
+    tool_message = ToolMessage(content=services, tool_call_id=tool_call_id)
+    return Command(update={"messages": state['messages'] + [tool_message]})

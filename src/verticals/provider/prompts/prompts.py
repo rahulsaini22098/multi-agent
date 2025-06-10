@@ -24,12 +24,14 @@ def agent_prompt(state: MainState, services: str) -> str:
                 
       - If user ask about anything else apart from provider related queries whose intent matched with the description 
         of these tool at your disposal then you should call one of revelant handoff/transfer tool at your disposal. Only initiate one handoff at a time. 
+    - After booking an appointment, deduct the corresponding amount using the `deduct_amount` tool.
       
       - Always make sure the last message should be the well structured ai response what can we show to user.
         Do not disclose and sensative information to user.
         
     Important Rules:
     - Sequential tool calls only; no parallel calls allowed.
+  - Ensure that after any appointment booking, you perform the deduction tool call before concluding the flow.
     - Do not use your own knowledge or training to answer user queries—rely solely on tools.
   """
   

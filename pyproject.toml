@@ -34,9 +34,8 @@ packages = [
     "verticals",
     "verticals.provider",
     "verticals.provider.tools",
-    "verticals.provider.prompts"
-    "mock",
-    "lib"
+    "verticals.provider.prompts",
+    "mock"
 ]
 
 [tool.setuptools.package-dir]
@@ -46,7 +45,6 @@ packages = [
 "core" = "src/core"
 "verticals" = "src/verticals"
 "mock" = "src/mock"
-"lib" = "src/lib"
 
 
 [tool.setuptools.package-data]
